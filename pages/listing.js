@@ -35,6 +35,8 @@ export default function Listing(){
 	const [ company, setCompany ] = useState("%%");
 	const [ date, setDate ] = useState(todayDate);
 	const [ clicked, setClicked ] = useState(false);
+	const [ grid, setGrid ] = useState(true);
+	const [ toggle, setToggle ] = useState(false);
 
 	const fetchData = async (
 		url,
@@ -92,28 +94,57 @@ export default function Listing(){
 						</div>
 					</div>
 					<div className="flex align-center items-center">
-						<div className="border rounded-sm border-gray-200 py-2 px-2 font-bold">
+						<button className={`${
+							grid ?
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold"
+							:
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold opacity-50"
+						}`} onClick={() => {
+							if (!grid) {
+								setGrid(true)
+							}
+						}}>
 							<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
 							</svg>
-						</div>
-						<div className="border rounded-sm border-gray-200 py-2 px-2 font-bold xl:mr-4 lg:mr-4 mr-0 opacity-50">
+						</button>
+						<button className={`${
+							grid ?
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold xl:mr-4 lg:mr-4 mr-0 opacity-50"
+							:
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold xl:mr-4 lg:mr-4 mr-0"
+						}`} onClick={() => {
+							if (grid) {
+								setGrid(false)
+							}
+						}}>
 							<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
 							</svg>
-						</div>
+						</button>
 					</div>
 				</div>
 			</div>
-      {router.pathname == "/listing" && count ?
+      {router.pathname == "/listing" && count && grid ?
       <main className="bg-gray-100 h-49rem w-full">
 				<div className="max-w-7xl m-auto">
 					<div className="flex flex-col xl:flex-row lg:flex-row">
-						<div className="w-full xl:w-1/3 lg:w-1/3 h-35rem bg-white ml-0 xl:ml-5 lg:ml-5 mt-5">
+						<div className={`${
+							toggle ?
+							"w-full xl:w-1/3 lg:w-1/3 h-35rem transition duration-500 ease-in-out overflow-hidden bg-white ml-0 xl:ml-5 lg:ml-5 mt-5"
+							:
+							"w-full xl:w-1/3 lg:w-1/3 h-16 transition duration-500 ease-in-out overflow-hidden bg-white ml-0 xl:ml-5 lg:ml-5 mt-5"
+						}`}>
 							<div className="px-5 py-5">
 								<div className="pb-3 border-b flex justify-between mx-3 pb-4 border-gray-200 relative text-lg font-semibold">
 									Filters
-									<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 transform -rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600 transform -rotate-90 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor" onClick={() => {
+										if (!toggle) {
+											setToggle(true)
+										} else {
+											setToggle(false)
+										}
+									}}>
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
 									</svg>
 								</div>
@@ -267,7 +298,7 @@ export default function Listing(){
 															console.log(bookmarks)
 														}else {
 															const indexes = bookmarks.indexOf(item.id)
-															if (indexes > 1 && index == item.id) {
+															if (indexes > 1 && indexes == item.id) {
 																bookmarks.splice(index, 1)
 															}
 															setClicked(false)
@@ -318,6 +349,57 @@ export default function Listing(){
       :
       null
       }
+			{router.pathname == "/listing" && count && !grid ?
+			<div className="bg-gray-100 w-full">
+				<div className="mt-5 h-47rem max-w-7xl m-auto bg-transparent">
+					<div className="grid grid-cols-1 gap-0 h-full xl:gap-8 lg:gap-8 overflow-auto">
+						{filteredJobs && filteredJobs.map((item, index) => {
+							return (
+								<div className="w-full bg-white rounded-md h-full mt-5 xl:mt-0 lg:mt-0" key={index}>
+									<div className="px-7 py-7 pb-3 border-b border-gray-200 flex justify-between items-center">
+										<div className="w-2/3">
+											<Link href={item.js_url}>
+												<div className="mt-3 cursor-pointer">
+													<a className="w-full text-2xl font-semibold text-blue-700 hover:text-blue-700 transition duration-700">
+														{item.js_position_title}
+													</a>
+												</div>
+											</Link>
+											<div className="w-full text-lg mt-5 mb-5 font-semibold text-gray-600">
+												{item.js_company_name}
+											</div>
+											<div className="w-full text-lg mb-5 font-semibold tracking-tighter text-gray-600 flex items-center text-gray-400 hover:text-blue-600">
+												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-gray-400 hover:text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+													<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+												</svg>
+												{item.js_work_location}
+											</div>
+										</div>
+										<div className="bg-blue-800 rounded-md w-1/3">
+											<Link href={item.js_url}>
+												<button className="w-full font-bold text-white text-lg py-2 px-5 rounded-lg text-center">
+													Apply now
+												</button>
+											</Link>
+										</div>
+									</div>
+									<div className="px-7 py-5 w-full">
+										<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600">
+											{item.js_employment_type}
+										</span>
+										<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600 ml-2">
+											{item.specialization.name}
+										</span>
+									</div>
+								</div>
+							)
+						})}
+					</div>
+				</div>
+				</div>
+				:
+				null
+			}
 			<Footer />
     </div>
 	)

@@ -19,7 +19,7 @@ export default function Home() {
       </Head>
       
       <Nav />
-      {router.pathname == "/" ?
+      {/* {router.pathname == "/" ? */}
       <main className="bg-gray-100 h-58rem flex justify-center items-center">
         <div className="container m-auto text-center">
           <h3 className="text-6xl font-bold text-gray-700 mb-3">
@@ -32,9 +32,9 @@ export default function Home() {
           </div>
         </div>
       </main>
-      :
+      {/* :
       null
-      }
+      } */}
       <Footer />
     </div>
   )
