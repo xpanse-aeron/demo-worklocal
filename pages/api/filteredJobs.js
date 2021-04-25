@@ -38,6 +38,7 @@ export default async function Filter (req, res) {
         specialization {
           name
         }
+        origin
       }
     }
   `;

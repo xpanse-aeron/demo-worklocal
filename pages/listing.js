@@ -9,6 +9,7 @@ import filteredJobs from './api/filteredJobs'
 import { useState } from "react"
 import moment from "moment";
 import Link from "next/link";
+import Slider from 'react-rangeslider'
 
 export default function Listing(){
   const router = useRouter();
@@ -39,6 +40,9 @@ export default function Listing(){
 	const [ grid, setGrid ] = useState(true);
 	const [ toggle, setToggle ] = useState(false);
 	const [ toggleOrder, setToggleOrder] = useState(true)
+	const [ sliderVal, setSliderValue ] = useState(1500)
+	let origins = []
+	let originCoordinates = ""
 
 	const fetchData = async (
 		url,
@@ -67,7 +71,61 @@ export default function Listing(){
     return data;
 	}
 
-	const { data: filteredJobs, error } = useSWR(["/api/filteredJobs", title, location, company, specialization, type, date, order], (url, title, location, company, specialization, type, date, order) => fetchData(url, title, location, company, specialization, type, date, order));
+	const fetchDistance = async (
+		url,
+		coord
+	) => {
+		const res = await fetch(url, {
+			method: "POST",
+      headers: { "Content-type": "application/json" },
+      body: JSON.stringify({
+        coordinates: coord,
+      }),
+		})
+		const data = await res.json()
+		return data
+	}
+
+	const { data: filteredJobs, error } = useSWR(["/api/filteredJobs", title, location, company, specialization, type, date, order], (url, title, location, company, specialization, type, date, order) => fetchData(url, title, location, company, specialization, type, date, order), { revalidateOnFocus: false });
+
+	if (filteredJobs) {
+		let counter = 0;
+		for (let x = 0; x < filteredJobs.length; x++) {
+			origins.push(filteredJobs[x].origin.coordinates.lat.toString()+","+filteredJobs[x].origin.coordinates.long.toString())
+		}
+		if (origins.length != 0) {
+			for (let x = 0; x < origins.length; x++) {
+				if (counter == origins.length - 1) {
+					originCoordinates += origins[x]
+				} else {
+					originCoordinates += origins[x] + "|"
+				}
+				counter += 1
+			}
+		}
+	}
+
+	const { data: coordinate } = useSWR(["/api/distance", originCoordinates.toString()], (url, origins) => fetchDistance(url, origins), { revalidateOnFocus: false });
+
+	const determineIndex = (index) => {
+		let coordinateIndex = origins.indexOf(index)
+		if (coordinate) {
+			let value = coordinate.rows[coordinateIndex].elements[0].distance.value.toString()
+			let finalValue;
+			if (value.length == 7) {
+				finalValue = parseFloat((value.substring(0, 6) / 100).toFixed(2))
+			} else if (value.length == 5) {
+				finalValue = parseFloat((value.substring(0, 4) / 100).toFixed(2))
+			}
+			return finalValue
+		}
+	}
+
+	// const test = 1476616;
+
+	// console.log(determineIndex("14.408103209810506,121.04126067192588"));
+
+	console.log(origins, coordinate)
 
 	const { data: count } = useSWR("/api/count");
 
@@ -239,8 +297,10 @@ export default function Listing(){
 								<div className="mt-3 mx-3 pb-4 border-b border-gray-200 font-semibold text-md">
 									Distance
 									<div className="flex flex-col">
-										<div className="mt-3 mb-3"> within <span className="text-blue-700">30</span> km</div>
-										<input type="range" min="10" max="100" step="10" value="30" data-orientation="horizontal" />
+										<div className="mt-3 mb-3"> within <span className="text-blue-700">{sliderVal}</span> km</div>
+										<input type="range" min="10" max="1500" step="10" value={sliderVal} onChange={(e) => {
+											setSliderValue(e.target.value);
+										}}/>
 									</div>
 								</div>
 								<div className="mt-3 mx-3 pb-5 font-semibold text-md">
@@ -312,7 +372,12 @@ export default function Listing(){
 							<div className="grid grid-cols-1 gap-0 h-full xl:gap-8 lg:gap-8 xl:grid-cols-2 lg:grid-cols-2 overflow-auto">
 								{filteredJobs && filteredJobs.map((item, index) => {
 									return (
-										<div className="w-full bg-white rounded-md h-25rem mt-5 xl:mt-0 lg:mt-0" key={index}>
+										<div className={`${
+											determineIndex(item.origin.coordinates.lat+","+item.origin.coordinates.long) <= sliderVal ?
+											"w-full bg-white rounded-md h-25rem mt-5 xl:mt-0 lg:mt-0"
+											:
+											"w-full bg-white rounded-md h-25rem mt-5 xl:mt-0 lg:mt-0 hidden"
+										}`} key={index}>
 											<div className="px-7 py-7 pb-3 border-b border-gray-200">
 												<div className="w-full flex justify-between">
 													<img className="h-15 w-18" src="/sykes.jpg" alt="WorkLocal logo" />

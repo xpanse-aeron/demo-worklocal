@@ -106,7 +106,7 @@ export function SearchDropdownListing() {
 							query: { title: jobTitle, location: location, specialization: specialization },
 						}}
 					>
-						<a className="bg-green-500 block -ml-1 z-0 w-full px-2 py-3 rounded-sm text-md text-white text-center font-bold">
+						<a className="bg-green-500 block w-full px-2 py-3 rounded-sm text-md text-white text-center font-bold">
 							Search Jobs
 						</a>
 					</Link>
