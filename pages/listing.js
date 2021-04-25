@@ -9,7 +9,6 @@ import filteredJobs from './api/filteredJobs'
 import { useState } from "react"
 import moment from "moment";
 import Link from "next/link";
-import Slider from 'react-rangeslider'
 
 export default function Listing(){
   const router = useRouter();
@@ -120,12 +119,6 @@ export default function Listing(){
 			return finalValue
 		}
 	}
-
-	// const test = 1476616;
-
-	// console.log(determineIndex("14.408103209810506,121.04126067192588"));
-
-	console.log(origins, coordinate)
 
 	const { data: count } = useSWR("/api/count");
 
