@@ -33,7 +33,7 @@ export default function SearchDropdown() {
 					placeholder="All Job Specializations"
 					onChange={(e) => setSpecialization(e.target.value)}
 				>
-					<option>All Job Specializations</option>
+					<option value="%%">All Job Specializations</option>
 					<option value="Accounting/Finance">Accounting/Finance</option>
 					<option value="Admin/Human Resources">Admin/Human Resources</option>
 					<option value="Arts/Media/Communications">Arts/Media/Communications</option>
@@ -84,13 +84,13 @@ export function SearchDropdownListing() {
 						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
 					</svg>
 				</div>
-				<div className="xl:w-1/4 lg:w-1/4 w-full xl:mx-0 lg:mx-0 mb-2 xl:my-0 lg:my-0 z-10">
+				<div className="xl:w-1/4 lg:w-1/4 w-full xl:mx-0 lg:mx-0 mb-2 xl:my-0 lg:my-0">
 					<select
 						className="block w-full text-md px-2 py-3 border-gray-300 focus:outline-none focus:ring-gray-100 focus:border-gray-300 rounded-sm"
 						placeholder="All Job Specializations"
 						onChange={(e) => setSpecialization(e.target.value)}
 					>
-						<option>All Job Specializations</option>
+						<option value="%%">All Job Specializations</option>
 						<option value="Accounting/Finance">Accounting/Finance</option>
 						<option value="Admin/Human Resources">Admin/Human Resources</option>
 						<option value="Arts/Media/Communications">Arts/Media/Communications</option>

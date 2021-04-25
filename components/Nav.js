@@ -116,12 +116,12 @@ export function NavListing(){
 							{toggle ? 
 								<div className="absolute -bottom-10 left-1 text-black font-normal">
 									<Link href="/profile">
-										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-75 hover:opacity-75 transition duration-1000 border rounded px-4 py-2 z-30 border-black-700">
+										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-90 hover:opacity-90 transition duration-1000 border rounded px-4 py-2 z-30 border-black-700">
 											Profile
 										</a>
 									</Link>
 									<Link href="/api/auth/logout">
-										<a className="font-sans text-sm ml-3 bg-white rounded w-25 text-black-700 hover:border-opacity-75 hover:opacity-75 transition duration-1000 border rounded px-4 py-2 border-black-700">
+										<a className="font-sans text-sm ml-3 bg-white rounded w-25 text-black-700 hover:border-opacity-90 hover:opacity-90 transition duration-1000 border rounded px-4 py-2 border-black-700">
 											Logout
 										</a>
 									</Link>

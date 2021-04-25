@@ -9,9 +9,9 @@ export default async function Filter (req, res) {
     },
   });
   const query = gql`
-    query ($name: String, $place: String, $company: String, $type: String, $date: date){
-			job_list(where: {js_company_name: {_ilike: $company}, js_employment_type: {_ilike: $type}, _or: {js_position_title: {_ilike: $name}, js_work_location: {_ilike: $place}}, date_added: {_lte: $date}}){
-				id
+    query($name: String, $place: String, $company: String, $special: String, $type: String, $date: date, $order: order_by) {
+      job_list(where: {js_company_name: {_ilike: $company}, js_employment_type: {_ilike: $type}, _or: {js_position_title: {_ilike: $name}, js_work_location: {_ilike: $place}, specialization: {name: {_ilike: $special}}}, date_added: {_lte: $date}}, order_by: {date_added: $order}) {
+        id
         is_status
         js_ad_expiration
         js_advisertiser_id
@@ -38,7 +38,7 @@ export default async function Filter (req, res) {
         specialization {
           name
         }
-			}
+      }
     }
   `;
 
@@ -46,9 +46,10 @@ export default async function Filter (req, res) {
     name: req.body.title,
     place: req.body.location,
     company: req.body.company,
-    // special: req.body.specialization,
+    special: req.body.specialization,
     type: req.body.type,
     date: req.body.date,
+    order: req.body.order
   };
 
   const data = await graphQLClient.request(query, variables);

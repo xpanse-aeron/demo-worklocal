@@ -33,36 +33,41 @@ export default function Listing(){
 	}
 	const [ type, setType ] = useState("%%");
 	const [ company, setCompany ] = useState("%%");
+	const [ order, setOrder ] = useState("desc");
 	const [ date, setDate ] = useState(todayDate);
 	const [ clicked, setClicked ] = useState(false);
 	const [ grid, setGrid ] = useState(true);
 	const [ toggle, setToggle ] = useState(false);
+	const [ toggleOrder, setToggleOrder] = useState(true)
 
 	const fetchData = async (
 		url,
-		title,
-		location,
-		specialization,
-		type,
-		date
+		titles,
+		locations,
+		companies,
+		specializations,
+		types,
+		dates,
+		orders
 	) => {
 		const res = await fetch(url, {
 			method: "POST",
       headers: { "Content-type": "application/json" },
       body: JSON.stringify({
-        title: title,
-        location: location,
-        // specialization: specialization,
-        company: company,
-				type: type,
-				date: date
+        title: titles,
+        location: locations,
+        company: companies,
+        specialization: specializations,
+				type: types,
+				date: dates,
+				order: orders
       }),
 		})
     const data = await res.json();
     return data;
 	}
 
-	const { data: filteredJobs, error } = useSWR(["/api/filteredJobs", title, location, company, type, date], (url, title, location, company, type, date) => fetchData(url, title, location, company, type,date));
+	const { data: filteredJobs, error } = useSWR(["/api/filteredJobs", title, location, company, specialization, type, date, order], (url, title, location, company, specialization, type, date, order) => fetchData(url, title, location, company, specialization, type, date, order));
 
 	const { data: count } = useSWR("/api/count");
 
@@ -86,12 +91,32 @@ export default function Listing(){
 						<div className="text-sm flex ml-0 xl:ml-7 lg:ml-7">
 							<span>Sort by:</span>
 						</div>
-						<div className="border rounded-sm border-gray-200 py-2 px-2 font-bold ml-2">
+						<button className={`${
+							toggleOrder ?
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold ml-2"
+							:
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold ml-2 opacity-50"
+						}`} onClick={() => {
+							if (!toggleOrder) {
+								setToggleOrder(true)
+								setOrder("desc")
+							}
+						}}>
 							Relevance
-						</div>
-						<div className="border rounded-sm border-gray-200 py-2 px-2 font-bold opacity-50">
+						</button>
+						<button className={`${
+							toggleOrder ?
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold opacity-50"
+							:
+							"border rounded-sm border-gray-200 py-2 px-2 font-bold"
+						}`} onClick={() => {
+							if (toggleOrder) {
+								setToggleOrder(false)
+								setOrder("asc")
+							}
+						}}>
 							Date
-						</div>
+						</button>
 					</div>
 					<div className="flex align-center items-center">
 						<button className={`${
@@ -341,6 +366,22 @@ export default function Listing(){
 										</div>
 									)
 								})}
+								{!filteredJobs && (
+									<div>
+										<div class="border border-blue-300 shadow rounded-md p-4 max-w-sm w-full mx-auto">
+											<div class="animate-pulse flex space-x-4">
+												<div class="rounded-full bg-blue-300 h-12 w-12"></div>
+												<div class="flex-1 space-y-4 py-1">
+													<div class="h-4 bg-blue-300 rounded w-3/4"></div>
+													<div class="space-y-2">
+														<div class="h-4 bg-blue-300 rounded"></div>
+														<div class="h-4 bg-blue-300 rounded w-5/6"></div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
