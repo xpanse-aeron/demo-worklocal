@@ -45,9 +45,9 @@ export default function Nav(){
 							Hi, {user.name}
 							{toggle ? 
 								<div className="absolute -bottom-10 left-1 text-black font-normal">
-									<Link href="/profile">
+									<Link href="/listing">
 										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-75 hover:opacity-75 transition duration-1000 border rounded px-4 py-2 border-black-700">
-											Profile
+											Bookmarks
 										</a>
 									</Link>
 									<Link href="/api/auth/logout">
@@ -72,7 +72,9 @@ export default function Nav(){
 	)
 }
 
-export function NavListing(){
+export function NavListing({
+	ids
+}){
   const { user, error:userError, isLoading } = useUser();
 	const [ toggle, setToggle ] = useState(false);
 	return (
@@ -115,9 +117,12 @@ export function NavListing(){
 							Hi, {user.name}
 							{toggle ? 
 								<div className="absolute -bottom-10 left-1 text-black font-normal">
-									<Link href="/profile">
+									<Link href={{
+										pathname: "/listing",
+										query: { ids: ids },
+									}}>
 										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-90 hover:opacity-90 transition duration-1000 border rounded px-4 py-2 z-30 border-black-700">
-											Profile
+											Bookmarks
 										</a>
 									</Link>
 									<Link href="/api/auth/logout">

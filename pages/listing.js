@@ -11,10 +11,13 @@ import moment from "moment";
 import Link from "next/link";
 
 export default function Listing(){
+  const { user, error:userError, isLoading } = useUser();
   const router = useRouter();
 	let title;
 	let location;
 	let specialization;
+	let bookmarkIds = router.query.ids;
+	const toNumber = (arr) => arr.map(Number);
 	let todayDate = new Date().toISOString().slice(0, 10);
 	if (router.query.title != "") {
 		title = "%"+router.query.title+"%";
@@ -35,13 +38,35 @@ export default function Listing(){
 	const [ company, setCompany ] = useState("%%");
 	const [ order, setOrder ] = useState("desc");
 	const [ date, setDate ] = useState(todayDate);
-	const [ clicked, setClicked ] = useState(false);
+	const [ clicks, setClicks ] = useState([]);
 	const [ grid, setGrid ] = useState(true);
-	const [ toggle, setToggle ] = useState(false);
+	const [ toggle, setToggle ] = useState(true);
 	const [ toggleOrder, setToggleOrder] = useState(true)
 	const [ sliderVal, setSliderValue ] = useState(1500)
 	let origins = []
 	let originCoordinates = ""
+
+	const fetchJobs = async (
+		url
+	) => {
+		let ids = [];
+
+		if (Array.isArray(bookmarkIds)) {
+      ids = toNumber(bookmarkIds);
+    } else {
+      ids = [parseInt(bookmarkIds)];
+    }
+
+		const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: ids,
+      }),
+    });
+    const data = await res.json();
+    return data;
+	}
 
 	const fetchData = async (
 		url,
@@ -85,6 +110,25 @@ export default function Listing(){
 		return data
 	}
 
+	const fetchBookmarks = async (
+		url,
+		ids
+	) => {
+		const res = await fetch(url, {
+			method: "POST",
+      headers: { "Content-type": "application/json" },
+      body: JSON.stringify({
+        id: ids,
+      }),
+		})
+		const data = await res.json()
+		return data
+	}
+
+	const { data: specificJob } = useSWR(bookmarkIds ? ["/api/specificJob"] : null, (url) => fetchJobs(url), { revalidateOnFocus: false });
+
+	// if (specificJob) console.log(specificJob)
+
 	const { data: filteredJobs, error } = useSWR(["/api/filteredJobs", title, location, company, specialization, type, date, order], (url, title, location, company, specialization, type, date, order) => fetchData(url, title, location, company, specialization, type, date, order), { revalidateOnFocus: false });
 
 	if (filteredJobs) {
@@ -104,7 +148,29 @@ export default function Listing(){
 		}
 	}
 
+	if (specificJob) {
+		let counter = 0;
+		for (let x = 0; x < specificJob.length; x++) {
+			origins.push(specificJob[x].origin.coordinates.lat.toString()+","+specificJob[x].origin.coordinates.long.toString())
+		}
+		if (origins.length != 0) {
+			for (let x = 0; x < origins.length; x++) {
+				if (counter == origins.length - 1) {
+					originCoordinates += origins[x]
+				} else {
+					originCoordinates += origins[x] + "|"
+				}
+				counter += 1
+			}
+		}
+	}
+
 	const { data: coordinate } = useSWR(["/api/distance", originCoordinates.toString()], (url, origins) => fetchDistance(url, origins), { revalidateOnFocus: false });
+
+	const { data: userBookmark } = useSWR(user ? ["/api/userBookmarks", user.sub] : null, (url, id) => fetchBookmarks(url, id), { revalidateOnFocus: true });
+	// if (userBookmark) {
+	// 	console.log(userBookmark)
+	// }
 
 	const determineIndex = (index) => {
 		let coordinateIndex = origins.indexOf(index)
@@ -124,8 +190,30 @@ export default function Listing(){
 
 	const changeType = (type) => setType(type)
 	const changeDate = (date) => setDate(date)
+	
+	const bookmarks = [];
+	const element = {};
 
-	let bookmarks = [];
+	async function updateBookmark (user, ids) {
+		await fetch ("/api/updateBookmarks", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ id: user, ids: ids }),
+		})
+	}
+
+	const clickBookmark = (item) => {
+		if (user){
+			if (bookmarks.includes(item.id)){
+				const indexes = bookmarks.indexOf(item.id)
+				bookmarks.splice(indexes, 1)
+			} else {
+				bookmarks.push(item.id);
+				element.id = bookmarks;
+			}
+			updateBookmark(user.sub, element)
+		}
+	}
 
 	return (
 		<div className="flex flex-col">
@@ -134,7 +222,16 @@ export default function Listing(){
         <link rel="icon" href="/favicon.ico" />
       </Head>
       
-      <NavListing />
+			{userBookmark && (
+				<NavListing 
+					ids={userBookmark[0].bookmarks.id}
+				/>
+			)}
+			{!userBookmark && (
+				<NavListing 
+					ids={0}
+				/>
+			)}
 			<SearchDropdownListing />
 			<div className="bg-white w-full px-5 py-3">
 				<div className="flex align-center items-center justify-between max-w-7xl m-auto">
@@ -374,21 +471,70 @@ export default function Listing(){
 											<div className="px-7 py-7 pb-3 border-b border-gray-200">
 												<div className="w-full flex justify-between">
 													<img className="h-15 w-18" src="/sykes.jpg" alt="WorkLocal logo" />
-													<button className="py-1 px-1 bg-gray-600 rounded-md h-8 w-8 flex justify-center" onClick={() => {
-														if (!clicked) {
-															bookmarks.push(item.id);
-															setClicked(true)
-															console.log(bookmarks)
-														}else {
-															const indexes = bookmarks.indexOf(item.id)
-															if (indexes > 1 && indexes == item.id) {
-																bookmarks.splice(index, 1)
-															}
-															setClicked(false)
-															console.log(bookmarks)
-														}
-													}}>
-														<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white  hover:text-yellow-400 mt-1" viewBox="0 0 20 20" fill="currentColor">
+													<button className="py-1 px-1 bg-gray-600 rounded-md h-8 w-8 flex justify-center" onClick={() => clickBookmark(item)}>
+														<svg xmlns="http://www.w3.org/2000/svg" className={`${
+															userBookmark
+															&& userBookmark[0].bookmarks.id.includes(item.id) 
+															?
+															"h-5 w-5 text-yellow-400 hover:text-yellow-400 mt-1"
+															:
+															"h-5 w-5 text-white  hover:text-yellow-400 mt-1"
+														}`} viewBox="0 0 20 20" fill="currentColor">
+															<path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+														</svg>
+													</button>
+												</div>
+												<Link href={item.js_url}>
+													<div className="mt-3 cursor-pointer">
+														<a className="w-full text-xl font-semibold hover:text-blue-700 transition duration-700">
+															{item.js_position_title}
+														</a>
+													</div>
+												</Link>
+												<div className="w-full text-lg mt-2 font-semibold text-gray-600">
+													{item.js_company_name}
+												</div>
+												<div className="w-full text-lg mt-2 font-normal tracking-tighter text-gray-600">
+													Click the APPLY NOW button and expect an over the phone interview within the day. Please keep your lines open between 9AM-6PM
+												</div>
+												<div className="w-full text-lg mt-2 font-semibold tracking-tighter text-gray-600 flex items-center text-gray-400 hover:text-blue-600">
+													<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-gray-400 hover:text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+														<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+													</svg>
+													{item.js_work_location}
+												</div>
+											</div>
+											<div className="px-7 py-5 w-full">
+												<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600">
+													{item.js_employment_type}
+												</span>
+												<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600 ml-2">
+													{item.specialization.name}
+												</span>
+											</div>
+										</div>
+									)
+								})}
+								{specificJob && specificJob.map((item, index) => {
+									return (
+										<div className={`${
+											determineIndex(item.origin.coordinates.lat+","+item.origin.coordinates.long) <= sliderVal ?
+											"w-full bg-white rounded-md h-25rem mt-5 xl:mt-0 lg:mt-0"
+											:
+											"w-full bg-white rounded-md h-25rem mt-5 xl:mt-0 lg:mt-0 hidden"
+										}`} key={index}>
+											<div className="px-7 py-7 pb-3 border-b border-gray-200">
+												<div className="w-full flex justify-between">
+													<img className="h-15 w-18" src="/sykes.jpg" alt="WorkLocal logo" />
+													<button className="py-1 px-1 bg-gray-600 rounded-md h-8 w-8 flex justify-center" onClick={() => clickBookmark(item)}>
+														<svg xmlns="http://www.w3.org/2000/svg" className={`${
+															userBookmark
+															&& userBookmark[0].bookmarks.id.includes(item.id) 
+															?
+															"h-5 w-5 text-yellow-400 hover:text-yellow-400 mt-1"
+															:
+															"h-5 w-5 text-white  hover:text-yellow-400 mt-1"
+														}`} viewBox="0 0 20 20" fill="currentColor">
 															<path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
 														</svg>
 													</button>
@@ -453,6 +599,47 @@ export default function Listing(){
 				<div className="mt-5 h-47rem max-w-7xl m-auto bg-transparent">
 					<div className="grid grid-cols-1 gap-0 h-full xl:gap-8 lg:gap-8 overflow-auto">
 						{filteredJobs && filteredJobs.map((item, index) => {
+							return (
+								<div className="w-full bg-white rounded-md h-full mt-5 xl:mt-0 lg:mt-0" key={index}>
+									<div className="px-7 py-7 pb-3 border-b border-gray-200 flex justify-between items-center">
+										<div className="w-2/3">
+											<Link href={item.js_url}>
+												<div className="mt-3 cursor-pointer">
+													<a className="w-full text-2xl font-semibold text-blue-700 hover:text-blue-700 transition duration-700">
+														{item.js_position_title}
+													</a>
+												</div>
+											</Link>
+											<div className="w-full text-lg mt-5 mb-5 font-semibold text-gray-600">
+												{item.js_company_name}
+											</div>
+											<div className="w-full text-lg mb-5 font-semibold tracking-tighter text-gray-600 flex items-center text-gray-400 hover:text-blue-600">
+												<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-gray-400 hover:text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+													<path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+												</svg>
+												{item.js_work_location}
+											</div>
+										</div>
+										<div className="bg-blue-800 rounded-md w-1/3">
+											<Link href={item.js_url}>
+												<button className="w-full font-bold text-white text-lg py-2 px-5 rounded-lg text-center">
+													Apply now
+												</button>
+											</Link>
+										</div>
+									</div>
+									<div className="px-7 py-5 w-full">
+										<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600">
+											{item.js_employment_type}
+										</span>
+										<span className="border border-green-600 rounded-md px-2 py-1 font-bold bg-transparent text-xs text-green-600 ml-2">
+											{item.specialization.name}
+										</span>
+									</div>
+								</div>
+							)
+						})}
+						{specificJob && specificJob.map((item, index) => {
 							return (
 								<div className="w-full bg-white rounded-md h-full mt-5 xl:mt-0 lg:mt-0" key={index}>
 									<div className="px-7 py-7 pb-3 border-b border-gray-200 flex justify-between items-center">
