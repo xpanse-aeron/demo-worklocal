@@ -2,7 +2,9 @@ import Link from "next/link";
 import { useState } from "react"
 import { useUser } from '@auth0/nextjs-auth0';
 
-export default function Nav(){
+export default function Nav({
+	ids
+}){
   const { user, error:userError, isLoading } = useUser();
 	const [ toggle, setToggle ] = useState(false);
 	return (
@@ -44,15 +46,18 @@ export default function Nav(){
 						}}>
 							Hi, {user.name}
 							{toggle ? 
-								<div className="absolute -bottom-10 left-1 text-black font-normal">
-									<Link href="/listing">
-										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-75 hover:opacity-75 transition duration-1000 border rounded px-4 py-2 border-black-700">
+								<div className="absolute -bottom-24 left-0 text-black font-normal flex flex-col">
+									<Link href={{
+										pathname: "/listing",
+										query: { ids: ids },
+									}}>
+										<a className="font-sans text-sm bg-white rounded w-56 text-black-700 transition duration-1000 border rounded px-4 py-2 border-black-700 text-center mb-1">
 											Bookmarks
 										</a>
 									</Link>
 									<Link href="/api/auth/logout">
-										<a className="font-sans text-sm ml-3 bg-white rounded w-25 text-black-700 hover:border-opacity-75 hover:opacity-75 transition duration-1000 border rounded px-4 py-2 border-black-700">
-											Logout
+										<a className="font-sans text-sm bg-white rounded w-25 text-black-700 transition duration-1000 border rounded px-4 py-2 border-black-700 text-center">
+											Sign out
 										</a>
 									</Link>
 								</div>
@@ -116,18 +121,18 @@ export function NavListing({
 						}}>
 							Hi, {user.name}
 							{toggle ? 
-								<div className="absolute -bottom-10 left-1 text-black font-normal">
+								<div className="absolute -bottom-24 left-0 text-black font-normal flex flex-col">
 									<Link href={{
 										pathname: "/listing",
 										query: { ids: ids },
 									}}>
-										<a className="font-sans text-sm bg-white rounded w-full text-black-700 hover:border-opacity-90 hover:opacity-90 transition duration-1000 border rounded px-4 py-2 z-30 border-black-700">
+										<a className="font-sans text-sm bg-white rounded w-56 text-black-700 transition duration-1000 border rounded px-4 py-2 border-black-700 text-center mb-1">
 											Bookmarks
 										</a>
 									</Link>
 									<Link href="/api/auth/logout">
-										<a className="font-sans text-sm ml-3 bg-white rounded w-25 text-black-700 hover:border-opacity-90 hover:opacity-90 transition duration-1000 border rounded px-4 py-2 border-black-700">
-											Logout
+										<a className="font-sans text-sm bg-white rounded w-25 text-black-700 transition duration-1000 border rounded px-4 py-2 border-black-700 text-center">
+											Sign out
 										</a>
 									</Link>
 								</div>
