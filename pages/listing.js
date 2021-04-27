@@ -1,12 +1,11 @@
 import Head from 'next/head'
 import { useRouter } from 'next/router'
-import Nav, { NavListing } from "../components/Nav"
+import { NavListing } from "../components/Nav"
 import Footer from "../components/Footer"
 import { SearchDropdownListing } from "../components/SearchDropdowns"
 import useSWR from "swr";
 import { useUser } from '@auth0/nextjs-auth0';
-import filteredJobs from './api/filteredJobs'
-import { useState } from "react"
+import { useState, useRef } from "react"
 import moment from "moment";
 import Link from "next/link";
 
@@ -212,6 +211,9 @@ export default function Listing(){
 				element.id = bookmarks;
 			}
 			updateBookmark(user.sub, element)
+			setTimeout(() => {
+				router.reload()
+			}, 2000)
 		}
 	}
 
